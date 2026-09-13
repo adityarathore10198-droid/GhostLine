@@ -3,7 +3,7 @@
 > **Arduino UNO Q & Edge Impulse Hackster Challenge Submission**  
 > **Author**: Aditya Rathore  
 > **Official GitHub Repository**: [https://github.com/adityarathore10198-droid/GhostLine/tree/a1c62925d7d5dda832911726a50b997855c09f45/GhostLine](https://github.com/adityarathore10198-droid/GhostLine/tree/a1c62925d7d5dda832911726a50b997855c09f45/GhostLine)  
-> **Project Demo Video**: [Ghostline_DemoVideo.mp4](file:///C:/Users/Asus/.gemini/antigravity/brain/8befab98-3ac3-4d5f-996e-37b49dc2f860/Ghostline_DemoVideo.mp4)
+> **Project Demo Video**: (https://youtube.com/shorts/aObq6B6c2bo?si=fsb3TIO36Uru8Syl)
 
 ---
 
