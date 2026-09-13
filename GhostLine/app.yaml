@@ -1,0 +1,10 @@
+name: GhostLine - AI-Powered RC Racing
+description: Smart multiplayer RC racing arcade system with edge AI computer vision tracking, real-time telemetry, ghost lap comparison, and instant physical race signals.
+ports: []
+bricks:
+  - arduino:video_object_detection:
+      # In App Lab: Select your cloned Edge Impulse model from the brick dropdown,
+      # or specify its name/id below (e.g. model: ei-model-<project-id>-<version>):
+      {}
+  - arduino:web_ui: {}
+icon: 🏎️

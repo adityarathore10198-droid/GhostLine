@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GhostLine - AI-Powered RC Racing System</title>
+    <link rel="stylesheet" href="fonts/fonts.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <!-- Top HUD Header -->
+      <header class="hud-header">
+        <div class="logo-group">
+          <span class="racing-icon">🏎️</span>
+          <div class="title-container">
+            <h1 class="glow-title">GHOSTLINE <span class="ai-tag">YOLOX-VISION</span></h1>
+            <span class="sub-title">ARDUINO UNO Q ARCADE TELEMETRY</span>
+          </div>
+        </div>
+
+        <div class="race-session-info">
+          <div class="session-badge" id="sessionBadge">
+            <span class="driver-p1" id="hdrP1Driver">P1: Driver 1</span>
+            <span class="vs-label">VS</span>
+            <span class="driver-p2" id="hdrP2Driver">P2: Driver 2</span>
+            <span class="lap-target-chip" id="hdrLapTarget">5 LAPS</span>
+          </div>
+          <div class="status-indicator" id="statusPill">
+            <span class="pulse-dot"></span>
+            <span id="raceStateText">STANDBY (IDLE)</span>
+          </div>
+        </div>
+
+        <div class="control-actions">
+          <button id="btnOpenRegistration" class="btn btn-setup">⚙️ RACE SETUP</button>
+          <button id="btnStartRace" class="btn btn-start">🏁 START RACE</button>
+          <button id="btnCompleteRace" class="btn btn-complete">🏆 COMPLETE RACE</button>
+          <button id="btnResetRace" class="btn btn-reset">↺ RESET</button>
+          <button id="btnToggleHazard" class="btn btn-hazard">⚠️ HAZARD</button>
+          <button id="btnToggleDemo" class="btn btn-demo">🧪 DEMO SIM</button>
+        </div>
+      </header>
+
+      <!-- Main Dual-Column Arcade Workspace -->
+      <main class="hud-main">
+        <!-- Left Column: Live USB Camera & Augmented Reality Viewport -->
+        <section class="track-section">
+          <div class="section-card track-card">
+            <div class="card-header">
+              <div class="cam-header-left">
+                <span class="live-record-dot"></span>
+                <span class="card-title">LIVE USB TRACK CAM (YOLOX NANO DETECTION)</span>
+              </div>
+              <div class="cam-stats">
+                <span class="stat-tag">CAM STREAM: <strong id="camStatusTag">PORT 4912</strong></span>
+                <span class="stat-tag">FPS: <strong id="fpsCounter">60</strong></span>
+                <button id="btnCalibrateLine" class="btn btn-xs">📐 CALIBRATE LINE</button>
+              </div>
+            </div>
+
+            <!-- Video Container with Layered AR Canvas -->
+            <div class="camera-viewport-container" id="cameraViewport">
+              <!-- Loading / Placeholder if camera initializing -->
+              <div id="videoPlaceholder" class="camera-placeholder">
+                <div class="loader-spinner"></div>
+                <p class="placeholder-title">Connecting to USB Camera Stream (Port 4912)...</p>
+                <p class="placeholder-sub">Ensure USB camera is connected to the Arduino UNO Q via powered USB-C hub.</p>
+              </div>
+
+              <!-- Live USB Camera Feed iframe (App Lab video_object_detection brick) -->
+              <iframe
+                id="dynamicIframe"
+                title="Live USB Camera Feed"
+                frameborder="0"
+                style="display: none;"></iframe>
+
+              <!-- Augmented Reality Transparent Canvas directly over video -->
+              <canvas id="trackCanvas"></canvas>
+
+              <!-- In-canvas 3-2-1-GO Countdown Overlay -->
+              <div class="countdown-overlay" id="countdownOverlay" style="display: none;">
+                <span id="countdownNumber">3</span>
+              </div>
+
+              <!-- Winner Celebration Banner -->
+              <div class="winner-banner" id="winnerBanner" style="display: none;">
+                <div class="winner-content">
+                  <div class="trophy-icon">🏆</div>
+                  <h2 id="winnerText">VICTORY!</h2>
+                  <p id="winnerLapStats">Best Lap: --.--s</p>
+                  <button id="btnCloseBanner" class="btn btn-start">CONTINUE</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Track Footer Live Telemetry Strips -->
+            <div class="track-footer-hud">
+              <div class="racer-hud-strip p1-strip">
+                <span class="racer-tag p1-tag" id="stripP1Tag">P1 CYAN</span>
+                <div class="hud-stat-box">
+                  <span class="lbl">DRIVER</span>
+                  <span class="val" id="stripP1Name">Driver 1</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">SPEED</span>
+                  <span class="val"><strong id="p1Speed">0.0</strong> km/h</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">LAP</span>
+                  <span class="val"><strong id="p1Lap">0</strong> / <span id="p1TargetLap">5</span></span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">CURRENT</span>
+                  <span class="val" id="p1CurrentLap">0.00s</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">BEST</span>
+                  <span class="val highlight" id="p1BestLap">--.--</span>
+                </div>
+              </div>
+
+              <div class="racer-hud-strip p2-strip">
+                <span class="racer-tag p2-tag" id="stripP2Tag">P2 BLAZE</span>
+                <div class="hud-stat-box">
+                  <span class="lbl">DRIVER</span>
+                  <span class="val" id="stripP2Name">Driver 2</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">SPEED</span>
+                  <span class="val"><strong id="p2Speed">0.0</strong> km/h</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">LAP</span>
+                  <span class="val"><strong id="p2Lap">0</strong> / <span id="p2TargetLap">5</span></span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">CURRENT</span>
+                  <span class="val" id="p2CurrentLap">0.00s</span>
+                </div>
+                <div class="hud-stat-box">
+                  <span class="lbl">BEST</span>
+                  <span class="val highlight" id="p2BestLap">--.--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Column: Ghost Comparator & Timing Tower -->
+        <aside class="telemetry-section">
+          <!-- GhostLine Delta Comparator -->
+          <div class="section-card ghost-card">
+            <div class="card-header">
+              <span class="card-title">👻 GHOSTLINE DELTA COMPARATOR</span>
+              <span class="record-badge" id="ghostRecordBadge">RECORD: --.--</span>
+            </div>
+            
+            <div class="delta-display-panel">
+              <div class="delta-value-box" id="deltaContainer">
+                <span class="delta-sign" id="deltaSign">±</span>
+                <span class="delta-number" id="deltaNumber">0.00</span>
+                <span class="delta-unit">SEC</span>
+              </div>
+              <div class="delta-status-label" id="deltaStatusLabel">ESTABLISH FASTEST LAP TO SPAWN GHOST</div>
+
+              <div class="delta-bar-wrapper">
+                <div class="delta-bar-midline"></div>
+                <div class="delta-bar-fill" id="deltaBarFill"></div>
+              </div>
+              <div class="delta-bar-labels">
+                <span>-1.0s (FASTER)</span>
+                <span>MATCH</span>
+                <span>+1.0s (SLOWER)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Timing Tower -->
+          <div class="section-card leaderboard-card">
+            <div class="card-header">
+              <span class="card-title">🏁 TIMING TOWER & LEADERBOARD</span>
+              <span class="mode-pill" id="leaderboardModePill">TIME ATTACK</span>
+            </div>
+
+            <table class="timing-table">
+              <thead>
+                <tr>
+                  <th>POS</th>
+                  <th>DRIVER & CAR</th>
+                  <th>LAP</th>
+                  <th>LAST</th>
+                  <th>BEST</th>
+                  <th>GAP</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardBody">
+                <tr class="row-p1">
+                  <td><span class="pos-badge gold">1</span></td>
+                  <td>
+                    <div class="driver-cell">
+                      <span class="driver-name cyan-glow" id="tblP1Driver">Driver 1</span>
+                      <span class="car-subtext" id="tblP1Car">Apex GT</span>
+                    </div>
+                  </td>
+                  <td id="tableP1Lap">0/5</td>
+                  <td id="tableP1Last">--.--</td>
+                  <td id="tableP1Best">--.--</td>
+                  <td>LEADER</td>
+                </tr>
+                <tr class="row-p2">
+                  <td><span class="pos-badge silver">2</span></td>
+                  <td>
+                    <div class="driver-cell">
+                      <span class="driver-name orange-glow" id="tblP2Driver">Driver 2</span>
+                      <span class="car-subtext" id="tblP2Car">Blaze RC</span>
+                    </div>
+                  </td>
+                  <td id="tableP2Lap">0/5</td>
+                  <td id="tableP2Last">--.--</td>
+                  <td id="tableP2Best">--.--</td>
+                  <td id="tableP2Gap">+0.00s</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Dual-Brain Hardware Synergy Panel -->
+          <div class="section-card hardware-card">
+            <div class="card-header">
+              <span class="card-title">⚡ DUAL-BRAIN SYNERGY (STM32 + QUALCOMM)</span>
+            </div>
+            <div class="hardware-grid">
+              <div class="hw-node">
+                <span class="hw-label">STM32 MCU BRIDGE</span>
+                <span class="hw-status active" id="hwRpcStatus">CONNECTED</span>
+              </div>
+              <div class="hw-node">
+                <span class="hw-label">8x13 LED MATRIX</span>
+                <span class="hw-status active" id="hwMatrixStatus">ACTIVE ANIM</span>
+              </div>
+              <div class="hw-node">
+                <span class="hw-label">START LIGHTS (D2-D4)</span>
+                <span class="hw-status ready" id="hwLightsStatus">SYNCHRONIZED</span>
+              </div>
+              <div class="hw-node">
+                <span class="hw-label">RACE BUZZER (D5)</span>
+                <span class="hw-status ready" id="hwBuzzerStatus">ARMED</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <!-- Pre-Race Registration & Setup Modal -->
+      <div class="modal-backdrop" id="registrationModal" style="display: none;">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h2>🏎️ RACE SETUP & DRIVER REGISTRATION</h2>
+            <button class="modal-close" id="btnCloseModal">✕</button>
+          </div>
+          <div class="modal-body">
+            <form id="registrationForm">
+              <!-- Driver 1 Info -->
+              <div class="form-group-box p1-border">
+                <h3 class="group-title cyan-glow">Racer 1 (Cyan / Leader)</h3>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="inputP1Driver">Driver Name</label>
+                    <input type="text" id="inputP1Driver" value="Aditya" placeholder="Enter driver name" required />
+                  </div>
+                  <div class="field">
+                    <label for="inputP1Car">Car Model / Tag</label>
+                    <input type="text" id="inputP1Car" value="Apex GT (Cyan)" placeholder="e.g. Mini-Z Cyan" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Driver 2 Info -->
+              <div class="form-group-box p2-border">
+                <h3 class="group-title orange-glow">Racer 2 (Orange / Challenger)</h3>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="inputP2Driver">Driver Name</label>
+                    <input type="text" id="inputP2Driver" value="Challenger" placeholder="Enter driver name" />
+                  </div>
+                  <div class="field">
+                    <label for="inputP2Car">Car Model / Tag</label>
+                    <input type="text" id="inputP2Car" value="Blaze RC (Orange)" placeholder="e.g. WLtoys Orange" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Target Laps Selection -->
+              <div class="form-group-box laps-border">
+                <h3 class="group-title">Target Race Laps</h3>
+                <div class="lap-selector-row">
+                  <div class="lap-input-wrapper">
+                    <button type="button" class="btn-lap-adj" id="btnLapMinus">−</button>
+                    <input type="number" id="inputTargetLaps" min="1" max="100" value="5" class="lap-num-input" />
+                    <button type="button" class="btn-lap-adj" id="btnLapPlus">+</button>
+                  </div>
+                  <div class="lap-presets">
+                    <button type="button" class="preset-pill" data-laps="3">3 Laps</button>
+                    <button type="button" class="preset-pill active" data-laps="5">5 Laps</button>
+                    <button type="button" class="preset-pill" data-laps="10">10 Laps</button>
+                    <button type="button" class="preset-pill" data-laps="15">15 Laps</button>
+                    <button type="button" class="preset-pill" data-laps="20">20 Laps</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Race Mode Selection -->
+              <div class="form-group-box">
+                <h3 class="group-title">Game Mode</h3>
+                <div class="mode-radios">
+                  <label class="mode-radio-label">
+                    <input type="radio" name="raceModeRadio" value="TIME_ATTACK" checked />
+                    <span class="radio-content">
+                      <strong>Time Attack (Solo vs GhostLine)</strong>
+                      <small>Race against your recorded personal best ghost car.</small>
+                    </span>
+                  </label>
+                  <label class="mode-radio-label">
+                    <input type="radio" name="raceModeRadio" value="VERSUS_RACE" />
+                    <span class="radio-content">
+                      <strong>2-Player Grand Prix</strong>
+                      <small>Head-to-head multiplayer race for target laps.</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- AI Confidence -->
+              <div class="form-group-box">
+                <div class="confidence-row">
+                  <label for="inputConfidence">YOLOX Object Detection Confidence: <strong id="lblConfVal">0.40</strong></label>
+                  <input type="range" id="inputConfidence" min="0.1" max="0.9" step="0.05" value="0.4" />
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-reset" id="btnCancelModal">CANCEL</button>
+                <button type="submit" class="btn btn-start">💾 SAVE & REGISTER FOR RACE</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <footer class="hud-footer">
+        <span>Arduino UNO Q & App Lab Challenge Project — <strong>GhostLine AI-Powered RC Racing</strong></span>
+        <span>YOLOX Nano Camera Stream: Port 4912 | Bridge RPC: 115200 Baud | Qualcomm Dragonwing + STM32U585</span>
+      </footer>
+    </div>
+
+    <!-- App Lab WebSocket & Client Scripts -->
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
